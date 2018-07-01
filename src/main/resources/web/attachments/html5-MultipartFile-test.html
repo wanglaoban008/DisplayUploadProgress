@@ -1,0 +1,156 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Upload Files using XMLHttpRequest - Minimal</title>
+
+</head>
+<body>
+	<form id="upload_form1" enctype="multipart/form-data" method="post"
+		action="/attachments/upload">
+		<div align="center">
+			<span class="btn btn-success fileinput-button"> <span>上传</span>
+				<input type="file">
+			</span>
+		</div>
+		<div class="upload_row_layout">
+			<div class="input_row">
+				<label for="file">Select a File to Upload</label><br /> <input
+					tarIndex="1" class="atta_file_input" type="file" name="file"
+					onchange="fileSelected(this);" />
+			</div>
+			<div class="input_info_row">
+				<div class="fileName" id="file1_name"></div>
+				<div class="fileSize" id="file1_size"></div>
+				<div class="fileType" id="file1_type"></div>
+			</div>
+		</div>
+		<div class="upload_row_layout">
+			<div class="input_row">
+				<label for="file">Select a File to Upload</label><br /> <input
+					tarIndex="2" class="atta_file_input" type="file" name="file"
+					onchange="fileSelected(this);" />
+			</div>
+			<div class="input_info_row">
+				<div class="fileName" id="file2_name"></div>
+				<div class="fileSize" id="file2_size"></div>
+				<div class="fileType" id="file2_type"></div>
+			</div>
+		</div>
+		<div class="progressNumber" id="file_progress">
+			<div class="progressContent" id="progressContent"></div>
+		</div>
+		<div class="row">
+			<input type="button" onclick="uploadFile()" value="Upload" />
+		</div>
+
+	</form>
+
+	<script type="text/javascript">
+		function getFileType(fileName) {
+		}
+
+		function fileSelected(node) {
+			var tarIndex = node.getAttribute('tarIndex');
+			console.warn(tarIndex, node);
+			var file = node.files[0];
+			console.warn(file);
+			if (file) {
+				var fileSize = 0;
+				if (file.size > 1024 * 1024) {
+					fileSize = (Math.round(file.size * 100 / (1024 * 1024)) / 100)
+							.toString()
+							+ 'MB';
+				} else {
+					fileSize = (Math.round(file.size * 100 / 1024) / 100)
+							.toString()
+							+ 'KB';
+				}
+				//console.warn(node.parentNode.parentNode);
+				document.getElementById('file' + tarIndex + '_name').innerHTML = 'Name: '
+						+ file.name;
+				document.getElementById('file' + tarIndex + '_size').innerHTML = 'Size: '
+						+ fileSize;
+				document.getElementById('file' + tarIndex + '_type').innerHTML = 'Type: '
+						+ file.type;
+			}
+		}
+
+		function uploadFile() {
+			var form = document.getElementById('upload_form1');
+			var tagElements = document.getElementsByTagName('input');
+
+			var fd = new FormData();
+			for (var j = 0; j < tagElements.length; j++) {
+				var ele = tagElements[j];
+				if ('file' === ele.type) {
+					console.info(ele.type);
+					fd.append("file", ele.files[0]);
+				}
+			}
+			console.warn(fd);
+			fd.append("createDate", new Date());
+
+			var xhr = new XMLHttpRequest();
+			xhr.upload.addEventListener("progress", uploadProgress, false);
+			xhr.addEventListener("load", uploadComplete, false);
+			xhr.addEventListener("error", uploadFailed, false);
+			xhr.addEventListener("abort", uploadCanceled, false);
+			xhr.open("POST", "/attachments/uploads");
+			xhr.send(fd);
+		}
+
+		function uploadProgress(evt) {
+			if (evt.lengthComputable) {
+				var percentComplete = Math.round(evt.loaded * 100 / evt.total);
+				document.getElementById('progressContent').style.width = percentComplete.toString()+ '%';
+				document.getElementById('progressContent').innerHTML = percentComplete.toString()+ '%';
+			} else {
+				document.getElementById('file_progress').innerHTML = '无法计算';
+			}
+		}
+
+		function uploadComplete(evt) {
+			/* 当服务器响应后，这个事件就会被触发 */
+			alert("上传成功：" + evt.target.responseText);
+		}
+
+		function uploadFailed(evt) {
+			alert("上传失败：" + "上传文件发生了错误");
+		}
+
+		function uploadCanceled(evt) {
+			alert("上传取消：" + "上传被用户取消或者浏览器断开连接");
+		}
+	</script>
+	
+	<style type="text/css">
+	.progressNumber{width:100%;height:22px;line-height:22px;border:1px solid #369;margin:3px auto;}
+	.progressContent{width:1px;height:22px;line-height:22px;background:#D2D41A;margin:0;}
+	
+.atta_file_input {
+	width: 368px;
+	height: 26px;
+	background: #336699;
+	border: 1px solid #AAA;
+	line-height: 26px;
+}
+
+.fileinput-button {
+	position: relative;
+	display: inline-block;
+	overflow: hidden;
+}
+
+.fileinput-button input {
+	position: absolute;
+	right: 0px;
+	top: 0px;
+	opacity: 0;
+	-ms-filter: 'alpha(opacity=0)';
+	font-size: 200px;
+}
+</style>
+</body>
+</html>
